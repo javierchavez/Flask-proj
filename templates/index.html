@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+
+{% block title %}Main Page{% endblock %}
+
+{% block main %}
+        {% if current_user.is_anonymous() %}
+            Welcome!
+        {% else %}
+            Hi, {{ current_user.username }}!
+        {% endif %}
+{% endblock %}
+
+
+{% block submain %}
+    {% if current_user.is_anonymous() %}
+        <p><a class="btn btn-primary btn-lg" role="button" id="signup-btn">Sign up »</a></p>
+    {% endif %}
+{% endblock %}

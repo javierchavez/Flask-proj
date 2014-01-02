@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+
+{% block title %}{{ current_user.username }}{% endblock %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Toggle time</h3>
+                </div>
+                <div class="panel-body">
+                    <form action="{{ url_for('log') }}" method=post role="form">
+
+{#                        <input type=hidden name=log value="{%  if current_user.active[0].upper() == 'T'  %}False{% else %}True{% endif %}" type="text" class="form-control">#}
+{#                        <button type="submit" class="btn btn-primary">{%  if current_user.active[0].upper() == 'T'  %}Checkout{% else %}Check in{% endif %}</button>#}
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">File</h3>
+                </div>
+                <div class="panel-body text-center">
+                    <form action="{{ url_for('downloadf') }}" method=get>
+
+                        <button type="submit" class="btn btn-success">Download time sheet</button>
+
+                        <button onclick="parent.location='{{ url_for('uploadf') }}'" type="button" class="btn btn-default">Upload new time sheet</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+    <div class="col-md-6">
+        <h2>
+            Past
+        </h2>
+    </div>
+        <div class="col-md-6 col-md-offset-3">
+            <table class="table table-bordered">
+                {% for r in data %}
+                    <tr><td>{{ r["week"] }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

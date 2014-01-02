@@ -1,0 +1,132 @@
+<html lang="en"><script type="text/javascript">window["_gaUserPrefs"] = { ioo : function() { return true; } }</script><head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>{% block title %}{% endblock %}</title>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../docs-assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+<style>
+    /* Move down content because we have a fixed navbar that is 50px tall */
+    body {
+        padding-top: 50px;
+        padding-bottom: 20px;
+    }
+    #signup-form {
+        display: none;
+    }
+
+</style>
+
+
+</head>
+<body style="">
+
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+        <div class="navbar-collapse collapse">
+            {% if current_user.is_anonymous() %}
+
+                <form action="{{ url_for('login') }}" method=post class="navbar-form navbar-right" role="form">
+                    <div class="form-group">
+                        <input name=username type="text" placeholder="Email" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name=password placeholder="Password" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-success">Sign in</button>
+                </form>
+            {% else %}
+                <form action="{{ url_for('logout') }}" class="navbar-form navbar-right" role="form">
+                    <button onclick="parent.location='{{ url_for('main') }}'" type="button" class="btn btn-default">Home</button>
+                    <button type="submit" class="btn btn-danger">Logout</button>
+                </form>
+            {% endif %}
+        </div><!--/.navbar-collapse -->
+    </div>
+</div>
+{% if current_user.is_anonymous() %}
+<!-- Main jumbotron for a primary marketing message or call to action -->
+<div class="jumbotron">
+    <div class="container">
+        {% block signup %}
+            <div class="col-md-4 pull-right" id="signup-form">
+                <p>Lets get going</p>
+                <form class="form-horizontal" role="form" action="{{ url_for('signup') }}" method=post>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <input type="email" name="username" class="form-control" id="inputEmail3" placeholder="Email">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <input type="password" name="password" class="form-control" id="inputPassword3" placeholder="Password">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <button type="submit" class="btn btn-default">Sign up</button>
+                        </div>
+                    </div>
+                    <p style="color: #d9534f">
+                        {% for message in get_flashed_messages() %}
+                            {{ message }}
+                        {% endfor %}
+                    </p>
+                </form>
+
+            </div>
+        {% endblock %}
+        <h1>{% block main %}{% endblock %}</h1>
+        <p>No more trying to remember times.</p>
+        {% block submain %}
+        {% endblock %}
+    </div>
+</div>
+{% endif %}
+<div class="container">
+
+    <!-- Example row of columns -->
+    <div class="row">
+        {% block content %}
+
+        {% endblock %}
+    </div>
+
+    <hr>
+
+    <footer>
+        <p>© Javier C 2014</p>
+    </footer>
+</div> <!-- /container -->
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://code.jquery.com/jquery.js"></script>
+<script>
+
+
+    $("#signup-btn").click(function(){
+        $("#signup-form").fadeIn()
+    })
+</script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+</body>
+</html>
+	
