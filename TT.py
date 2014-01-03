@@ -16,10 +16,19 @@ class User(UserMixin):
     def __init__(self, username, password):
         self.username = username
         self.password = password
+        self.weeks = []
 
+    def __init__(self, username, password, weeks):
+        self.username = username
+        self.password = password
+        self.weeks = weeks
 
     def get_id(self):
         return unicode(str(self.username))
+
+    def save_user_only(self):
+        collection = User._getcol()
+        finding = collection.insert({'name': self.username, 'password': self.password, 'weeks': []})
 
     @staticmethod
     def _getcol():
@@ -39,7 +48,7 @@ class User(UserMixin):
 
         if finding is not None:
             print finding
-            return User(finding["name"], finding["password"])
+            return User(finding["name"], finding["password"], finding["weeks"])
         else:
             return None
 
@@ -54,12 +63,19 @@ class User(UserMixin):
 
         if finding is not None:
             print finding
-            return User(finding["name"], finding["password"])
+            return User(finding["name"], finding["password"], finding["weeks"])
         else:
             return None
-    def save(self):
+    @staticmethod
+    def get_password(username):
         collection = User._getcol()
-        finding = collection.insert({'name': self.username, 'password': self.password, 'weeks': []})
+        finding = collection.find_one({'name': username})
+        if finding is not None:
+            print finding
+            return finding["password"]
+        else:
+            return None
+
 
 
 application = app = Flask(__name__)
@@ -77,15 +93,19 @@ login_manager.login_view = "login"
 login_manager.login_message = u"Please log in to access this page."
 login_manager.refresh_view = "reauth"
 
-dta = [{"week": 1}, {"week": 2}, {"week": 3}]
+data_example = [{"week": 1, "days": [{"day": "mon", "in": 00, "out": 00}]}, {"week": 2, "days": [{"day": "sat", "in": 00, "out": 00}]}, {"week": 3, "days": [{"day": "tue", "in": 00, "out": 00}]}]
 
 
 @auth.get_password
 def get_password(name):
-    if name == 'Javier':
-        # login_user(USER_NAMES[name])
-        return 'hello'
+    pswd = User.get_password(name)
+    if pswd is not None:
+        user = User.check_login(name, pswd)
+        login_user(user)
+        return pswd
     return None
+
+# @auth.verify_password(password)
 
 @auth.error_handler
 def unauthorized():
@@ -147,7 +167,6 @@ def downloadf():
 
 @app.route("/login", methods=["POST"])
 def login():
-    print "here"
     if request.method == "POST" and "username" in request.form:
         username = request.form["username"]
         password = request.form["password"]
@@ -163,10 +182,7 @@ def login():
         else:
             flash("Something went wrong.")
     else:
-        print "here3"
-
-    flash("Something went wrong.")
-    print "here4"
+        flash("Something went wrong.")
 
     return render_template("login.html")
 
@@ -218,10 +234,10 @@ def log():
 def apilog():
 
     # Custom JSON api with web interface call for crazy measures
-    if not request.json:
-        return jsonify({'error': 'please use json'})
+    # if not request.json:
+    #     return jsonify({'error': 'please use json'})
 
-    elif request.json and request.method == 'POST' and "log" in request.json:
+    if request.method == 'POST' and "log" in request.json:
 
         # data = {
         #     'log': request.json['log'],
@@ -236,7 +252,7 @@ def apilog():
 
     else:
 
-        print current_user.name
+        print current_user.username
         # client = MongoClient()
 
         # collection = client.db.user_data
@@ -255,16 +271,14 @@ def apilog():
         #
         # print collection.count()
 
-        print datetime.date.today().isocalendar()[1]
+        # print datetime.date.today().isocalendar()[1]
         return jsonify({'user': current_user.username,
-                        'status': ""})
+                        'status': current_user.weeks})
 
 @app.route("/api/log/all", methods=["GET"])
 @auth.login_required
 def apilogall():
-    print "Here"
 
-    print current_user.name
     # client = MongoClient()
 
     # collection = client.db.user_data
@@ -286,8 +300,8 @@ def apilogall():
     # if username in USER_NAMES:
     #     if login_user(USER_NAMES[username]):
     #         print datetime.date.today().isocalendar()[1]
-    return jsonify({'user': current_user.name,
-                    'weeks': dta})
+    return jsonify({'user': current_user.username,
+                    'weeks': data_example})
 
 @app.route("/reauth", methods=["GET", "POST"])
 @login_required
@@ -307,7 +321,7 @@ def signup():
         user = User.get(username)
         if user is None:
             user = User(username, password)
-            user.save()
+            user.save_user_only()
             login_user(user)
             return redirect(url_for("main"))
         else:
@@ -346,13 +360,13 @@ def mongodb_uri():
         uri = "mongodb://localhost:27017"
 
 
-@app.before_first_request
-def initialize():
-    from pymongo import Connection
-    uri = mongodb_uri()
-    conn = Connection(uri)
-    collection = conn.db.user_data
-    collection.remove()
+# @app.before_first_request
+# def initialize():
+    # from pymongo import Connection
+    # uri = mongodb_uri()
+    # conn = Connection(uri)
+    # collection = conn.db.user_data
+    # collection.remove()
 
 if __name__ == "__main__":
     app.run()
