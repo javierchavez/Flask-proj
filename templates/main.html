@@ -13,9 +13,19 @@
                 <div class="panel-body">
                     <form action="{{ url_for('log') }}" method=post role="form">
 
-{#                        <input type=hidden name=log value="{%  if current_user.active[0].upper() == 'T'  %}False{% else %}True{% endif %}" type="text" class="form-control">#}
+{#                        <input type=hidden name=log value="{%  if current_user.is_checked_in() == 'true' %}out{% else %}in{% endif %}" type="text" class="form-control">#}
+                        <button type="submit" class="btn btn-primary" {% if not current_user.is_checked_in() == 'false' %} disabled="disabled" {% endif %}>Check in</button>
+                        <button type="submit" class="btn btn-danger" {% if not current_user.is_checked_in() == 'true' %} disabled="disabled" {% endif %} >Checkout</button>
 {#                        <button type="submit" class="btn btn-primary">{%  if current_user.active[0].upper() == 'T'  %}Checkout{% else %}Check in{% endif %}</button>#}
-
+                        <div class="row">
+                            <table class="table table-bordered">
+                                {% if current_user.get_curr_checkins() %}
+                                    {% for r in current_user.get_curr_checkins() %}
+                                        <tr><td>{{ r["week"] }}</td></tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </table>
+                        </div>
                     </form>
                 </div>
             </div>
