@@ -258,13 +258,18 @@ def login():
 @app.route("/api/login", methods=["POST"])
 def apilogin():
 
-    if request.json and request.method == "POST" and "username" in request.json:
-        username = request.json["username"]
-        # if username in USER_NAMES:
-        #     if login_user(USER_NAMES[username]):
-        #         return jsonify({'sign-in': 'successful'})
+    if request.method == "POST" and current_user is not None:
+        return Response(response=jsonify({'sign-in': 'Successful'}),
+                        status=200,
+                        headers=None,
+                        content_type='application/json',
+                        direct_passthrough=False)
 
-    return jsonify({'sign-in': 'Unsuccessful'})
+    return Response(response=jsonify({'sign-in': 'Unsuccessful'}),
+                    status=401,
+                    headers=None,
+                    content_type='application/json',
+                    direct_passthrough=False)
 
 
 @app.route("/log", methods=["POST"])
