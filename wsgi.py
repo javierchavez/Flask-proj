@@ -170,8 +170,9 @@ def get_password(name):
     pswd = User.get_password(name)
     if pswd is not None:
         user = User.check_login(name, pswd)
-        login_user(user)
-        return pswd
+        if user is not None:
+            login_user(user)
+            return pswd
     return None
 
 # @auth.verify_password(password)
@@ -256,16 +257,18 @@ def login():
     return render_template("login.html")
 
 @app.route("/api/login", methods=["POST"])
+@auth.login_required
 def apilogin():
 
-    if request.method == "POST" and current_user is not None:
-        return Response(response=jsonify({'sign-in': 'Successful'}),
+    if not current_user.is_anonymous():
+
+        return Response(response={'sign-in': 'Successful'},
                         status=200,
                         headers=None,
                         content_type='application/json',
                         direct_passthrough=False)
 
-    return Response(response=jsonify({'sign-in': 'Unsuccessful'}),
+    return Response(response={'sign-in': 'Unsuccessful'},
                     status=401,
                     headers=None,
                     content_type='application/json',
