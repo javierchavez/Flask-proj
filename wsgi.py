@@ -284,6 +284,7 @@ def log():
 def api_log():
 
     if not current_user.is_anonymous():
+        current_user.log()
         return Response(response=json.dumps({'status': 'Successful', 'checked-in': current_user.is_checked_in()}),
                         status=200,
                         headers=None,
