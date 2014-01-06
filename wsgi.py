@@ -262,13 +262,13 @@ def apilogin():
 
     if not current_user.is_anonymous():
 
-        return Response(response={'sign-in': 'Successful'},
+        return Response(response='Successful',
                         status=200,
                         headers=None,
                         content_type='application/json',
                         direct_passthrough=False)
 
-    return Response(response={'sign-in': 'Unsuccessful'},
+    return Response(response='Unsuccessful',
                     status=401,
                     headers=None,
                     content_type='application/json',
@@ -293,7 +293,7 @@ def apilog():
     # if not request.json:
     #     return jsonify({'error': 'please use json'})
 
-    if request.method == 'POST' and "log" in request.json:
+    if request.method == 'POST':
 
         # data = {
         #     'log': request.json['log'],
