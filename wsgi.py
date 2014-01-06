@@ -31,13 +31,10 @@ class User(UserMixin):
     def _get_time_arr(self):
         dayofweek = datetime.datetime.today().weekday()
         weeknum = datetime.date.today().isocalendar()[1]
-        for x in self.weeks:
-            if x["week"] == weeknum:
-                print "week"
-                for y in x["days"]:
-                    if dayofweek == y["day"]:
-                        return y["times"]
-        return None
+        collection = User._getcol()
+        dt = collection.find({'name':self.username}, {'weeks.week':weeknum}).limit(1)[0]
+        print "====>",dt
+
 
     def get_curr_checkins(self):
         return self._get_time_arr()
@@ -58,21 +55,6 @@ class User(UserMixin):
         finding = collection.find({'name': self.username}).limit(1)[0]
         return finding["checked-in"]
 
-    # def checkin(self):
-    #     times = self._get_time_arr()
-    #
-    #     self.is_checked_in = 'true'
-    #     # if times is None:
-    #     print "checkin", self.is_checked_in
-    #     return self.is_checked_in
-    #
-    # def checkout(self):
-    #     times = self._get_time_arr()
-    #     # save to DB since you can only checkout once
-    #     self.is_checked_in = 'false'
-    #     print "checkout", self.is_checked_in
-    #     return self.is_checked_in
-
     def log(self):
         collection = User._getcol()
         finding = collection.find({'name': self.username}).limit(1)[0]
@@ -88,18 +70,10 @@ class User(UserMixin):
             arr.append({'out': time.strftime("%H:%M:%S") })
             collection.update({'name': self.username}, {'$set': {'today': arr}} )
 
-            # print "hfhfhfhfhfhfh", self.weeks[0]["week"]
-            # finding = collection.find_one({'name': self.username}, {'weeks': [{'week': weeknum, "days": []}]})
-            # collection.update({'name': self.username}, {'$set': {'in': ''}} )
-
-
         else:
-            # self.in_out.append({ "in": time.strftime("%H:%M:%S")})
-            # print self.in_out
-
             collection.update({'name': self.username}, {'$set': {'checked-in':'true'}} )
             collection.update({'name': self.username}, {'$set': {'in': time.strftime("%H:%M:%S")}} )
-            # collection.update({'name': self.username}, {'$set': {'weeks': [{'week':weeknum, 'days':[]}]}} )
+
             # check to see if week is in DB if not add it
 
     def today(self):
@@ -112,8 +86,6 @@ class User(UserMixin):
         collection = User._getcol()
         finding = collection.find_one({'name': self.username})
         weeknum = datetime.date.today().isocalendar()[1]
-
-        # collection.update({'name': self.username}, {'$set': {'week':'false'}})
 
 
     @staticmethod
@@ -208,6 +180,7 @@ def index():
 def main():
     print current_user.is_checked_in()
     s = current_user.today()
+    current_user._get_time_arr()
     return render_template("main.html", data=s)
 
 @app.route("/upload", methods=["POST", "GET"])
