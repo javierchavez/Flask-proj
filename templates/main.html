@@ -19,11 +19,11 @@
 {#                        <button type="submit" class="btn btn-primary">{%  if current_user.active[0].upper() == 'T'  %}Checkout{% else %}Check in{% endif %}</button>#}
                         <div class="row">
                             <table class="table table-bordered">
-                                {% if current_user.get_curr_checkins() %}
-                                    {% for r in current_user.get_curr_checkins() %}
-                                        <tr><td>{{ r["week"] }}</td></tr>
+
+                                    {% for r in data %}
+                                        <tr><td>in: {{ r }} </td><</tr>
                                     {% endfor %}
-                                {% endif %}
+
                             </table>
                         </div>
                     </form>

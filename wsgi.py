@@ -16,7 +16,7 @@ class User(UserMixin):
         self.username = username
         self.password = password
         self.weeks = weeks
-        self.in_out = []
+        self.todayarr = []
 
     # @property
     # def inout(self):
@@ -50,11 +50,12 @@ class User(UserMixin):
         collection.insert({'name': self.username,
                            'password': self.password,
                            'checked-in': 'false',
+                           'today': [],
                            'weeks': [{'week': weeknum, "days": []}]})
 
     def is_checked_in(self):
         collection = User._getcol()
-        finding = collection.find_one({'name': self.username})
+        finding = collection.find({'name': self.username}).limit(1)[0]
         return finding["checked-in"]
 
     # def checkin(self):
@@ -74,14 +75,20 @@ class User(UserMixin):
 
     def log(self):
         collection = User._getcol()
-        finding = collection.find_one({'name': self.username})
+        finding = collection.find({'name': self.username}).limit(1)[0]
         weeknum = datetime.date.today().isocalendar()[1]
 
         if finding["checked-in"] == 'true':
-            self.in_out.append({"out": time.strftime("%H:%M:%S") } )
+
             collection.update({'name': self.username}, {'$set': {'checked-in':'false'}})
-            collection.update({'name': self.username}, {'$set': {'in': ''}} )
-            print "hfhfhfhfhfhfh", self.weeks[0]["week"]
+            # collection.update({'name': self.username}, {'$set': {'in': ''}} )
+            cin = finding["in"]
+            arr = finding["today"]
+            arr.append({'in': cin})
+            arr.append({'out': time.strftime("%H:%M:%S") })
+            collection.update({'name': self.username}, {'$set': {'today': arr}} )
+
+            # print "hfhfhfhfhfhfh", self.weeks[0]["week"]
             # finding = collection.find_one({'name': self.username}, {'weeks': [{'week': weeknum, "days": []}]})
             # collection.update({'name': self.username}, {'$set': {'in': ''}} )
 
@@ -95,7 +102,11 @@ class User(UserMixin):
             # collection.update({'name': self.username}, {'$set': {'weeks': [{'week':weeknum, 'days':[]}]}} )
             # check to see if week is in DB if not add it
 
-
+    def today(self):
+        col = User._getcol()
+        f = col.find({'name': self.username}).limit(1)[0]
+        print f
+        return f["today"]
 
     def update_times(self):
         collection = User._getcol()
@@ -196,7 +207,8 @@ def index():
 @login_required
 def main():
     print current_user.is_checked_in()
-    return render_template("main.html", data=data_example)
+    s = current_user.today()
+    return render_template("main.html", data=s)
 
 @app.route("/upload", methods=["POST", "GET"])
 @login_required
@@ -301,7 +313,7 @@ def api_log_today():
     # if not request.json:
     #     return jsonify({'error': 'please use json'})
 
-    if request.method == 'POST':
+
 
         # data = {
         #     'log': request.json['log'],
@@ -312,9 +324,9 @@ def api_log_today():
         # print datetime.date.today().isocalendar()[1]
         # current_user.active = request.json["log"][0]
         # print current_user.active
-
+        s = current_user.today()
         return jsonify({'user': current_user.username,
-                        'status': current_user.weeks})
+                        'check-ins': s})
 
 @app.route("/api/log/all", methods=["GET"])
 @auth.login_required
