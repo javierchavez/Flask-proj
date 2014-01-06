@@ -200,7 +200,7 @@ def main():
 
 @app.route("/upload", methods=["POST", "GET"])
 @login_required
-def uploadf():
+def upload_file():
 
     # def save_upload(filename):
     #     if request.files.get('file'):
@@ -223,7 +223,7 @@ def uploadf():
 
 @app.route("/download", methods=["GET"])
 @login_required
-def downloadf():
+def download_file():
 
     dir = os.path.dirname(__file__)
     file_dir = os.path.join(dir, 'tmp/hellop.txt')
@@ -258,21 +258,15 @@ def login():
 
 @app.route("/api/login", methods=["POST"])
 @auth.login_required
-def apilogin():
+def api_login():
 
     if not current_user.is_anonymous():
-
-        return Response(response='Successful',
+        return Response(response=json.dumps({'status': 'Successful'}),
                         status=200,
                         headers=None,
                         content_type='application/json',
                         direct_passthrough=False)
 
-    return Response(response='Unsuccessful',
-                    status=401,
-                    headers=None,
-                    content_type='application/json',
-                    direct_passthrough=False)
 
 
 @app.route("/log", methods=["POST"])
@@ -285,9 +279,22 @@ def log():
     return redirect(url_for("main"))
 
 
-@app.route("/api/log", methods=["GET", "POST"])
+@app.route("/api/log", methods=["POST"])
 @auth.login_required
-def apilog():
+def api_log():
+
+    if not current_user.is_anonymous():
+        return Response(response=json.dumps({'status': 'Successful', 'checked-in': current_user.is_checked_in()}),
+                        status=200,
+                        headers=None,
+                        content_type='application/json',
+                        direct_passthrough=False)
+
+
+
+@app.route("/api/log/today", methods=["GET"])
+@auth.login_required
+def api_log_today():
 
     # Custom JSON api with web interface call for crazy measures
     # if not request.json:
@@ -305,38 +312,12 @@ def apilog():
         # current_user.active = request.json["log"][0]
         # print current_user.active
 
-        # User.
-
-        return jsonify({'user': ''})
-
-    else:
-
-        print current_user.username
-        # client = MongoClient()
-
-        # collection = client.db.user_data
-
-
-        # try:
-        #     data = json.loads(request.data)
-        #     print data
-        #
-        # except (ValueError, KeyError, TypeError):
-        #     Not valid information, bail out and return an error
-        #
-        # return jsonify({'error': 'opps'})
-
-        # collection.insert({"name": data['name'], "handle": data['handle'] })
-        #
-        # print collection.count()
-
-        # print datetime.date.today().isocalendar()[1]
         return jsonify({'user': current_user.username,
                         'status': current_user.weeks})
 
 @app.route("/api/log/all", methods=["GET"])
 @auth.login_required
-def apilogall():
+def api_log_all():
 
     return jsonify({'user': current_user.username,
                     'weeks': data_example})
