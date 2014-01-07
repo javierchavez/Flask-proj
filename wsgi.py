@@ -276,7 +276,16 @@ def api_log():
                         content_type='application/json',
                         direct_passthrough=False)
 
+@app.route("/api/log/status", methods=["GET"])
+@auth.login_required
+def api_log_status():
 
+    if not current_user.is_anonymous():
+        return Response(response=json.dumps({'checked-in': current_user.is_checked_in()}),
+                        status=200,
+                        headers=None,
+                        content_type='application/json',
+                        direct_passthrough=False)
 
 @app.route("/api/log/today", methods=["GET"])
 @auth.login_required
