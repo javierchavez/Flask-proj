@@ -4,11 +4,10 @@ import os
 from pymongo import Connection
 from bson import json_util
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, make_response, Response
-import time
 from flask.ext.login import LoginManager, current_user, login_required, login_user, logout_user, UserMixin, confirm_login
 from flask.ext.httpauth import HTTPBasicAuth
 import sys
-
+from dateutil import parser
 
 class User(UserMixin):
 
@@ -59,10 +58,11 @@ class User(UserMixin):
         else:
             return {"checked-in": "false"}
 
-    def log(self):
+    def log(self, time):
         collection = User._getcol()
         finding = collection.find({'name': self.username}).limit(1)[0]
         weeknum = datetime.date.today().isocalendar()[1]
+        timeGiven = parser.parse(str(time))
 
         if finding["checked-in"] == 'true':
 
@@ -70,13 +70,16 @@ class User(UserMixin):
             # collection.update({'name': self.username}, {'$set': {'in': ''}} )
             cin = finding["in"]
             arr = finding["today"]
-            arr.append({'in': cin})
-            arr.append({'out': time.strftime("%H:%M:%S") })
+            arr.append({'in': cin, 'out': str(timeGiven)} )
+
             collection.update({'name': self.username}, {'$set': {'today': arr}} )
 
         else:
+            timeGiven = parser.parse(str(time))
+
             collection.update({'name': self.username}, {'$set': {'checked-in':'true'}} )
-            collection.update({'name': self.username}, {'$set': {'in': time.strftime("%H:%M:%S")}} )
+            # serialize dt obj
+            collection.update({'name': self.username}, {'$set': {'in': str(timeGiven)}} )
 
             # check to see if week is in DB if not add it
 
@@ -182,9 +185,11 @@ def index():
 @app.route("/main")
 @login_required
 def main():
-    print current_user.is_checked_in()
+    print current_user.is_checked_in()["checked-in"]
     s = current_user.today()
-    current_user._get_time_arr()
+    print s
+    # current_user._get_time_arr()
+
     return render_template("main.html", data=s)
 
 @app.route("/upload", methods=["POST", "GET"])
@@ -262,8 +267,9 @@ def api_login():
 @login_required
 def log():
     # print "form sent", request.form["log"]
+    data = request.form["time"]
 
-    current_user.log()
+    current_user.log(data)
     # print current_user.in_out
     return redirect(url_for("main"))
 
@@ -273,7 +279,9 @@ def log():
 def api_log():
 
     if not current_user.is_anonymous():
-        current_user.log()
+        data = json.loads(request.data)
+
+        current_user.log(data['time'])
         return Response(response=json.dumps(current_user.is_checked_in()),
                         status=200,
                         headers=None,

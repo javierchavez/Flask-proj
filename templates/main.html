@@ -13,15 +13,15 @@
                 <div class="panel-body">
                     <form action="{{ url_for('log') }}" method=post role="form">
 
-{#                        <input type=hidden name=log value="{%  if current_user.is_checked_in() == 'true' %}out{% else %}in{% endif %}" type="text" class="form-control">#}
-                        <button type="submit" class="btn btn-primary" {% if not current_user.is_checked_in() == 'false' %} disabled="disabled" {% endif %}>Check in</button>
-                        <button type="submit" class="btn btn-danger" {% if not current_user.is_checked_in() == 'true' %} disabled="disabled" {% endif %} >Checkout</button>
+                        <input id="data-time" type=hidden name=time value="" type="text" class="form-control">
+                        <button type="submit" class="btn btn-primary" {% if not current_user.is_checked_in()["checked-in"] == 'false' %} disabled="disabled" {% endif %}>Check in</button>
+                        <button type="submit" class="btn btn-danger" {% if not current_user.is_checked_in()["checked-in"] == 'true' %} disabled="disabled" {% endif %} >Checkout</button>
 {#                        <button type="submit" class="btn btn-primary">{%  if current_user.active[0].upper() == 'T'  %}Checkout{% else %}Check in{% endif %}</button>#}
                         <div class="row">
                             <table class="table table-bordered">
 
                                     {% for r in data %}
-                                        <tr><td>in: {{ r }} </td><</tr>
+                                        <tr><td>in: {{ r["in"] }} </td><td>out: {{ r["out"] }} </td></tr>
                                     {% endfor %}
 
                             </table>
