@@ -53,7 +53,11 @@ class User(UserMixin):
     def is_checked_in(self):
         collection = User._getcol()
         finding = collection.find({'name': self.username}).limit(1)[0]
-        return finding["checked-in"]
+
+        if "true" in finding["checked-in"]:
+            return {"checked-in": "true", "time-in": finding["in"]}
+        else:
+            return {"checked-in": "false"}
 
     def log(self):
         collection = User._getcol()
@@ -270,7 +274,7 @@ def api_log():
 
     if not current_user.is_anonymous():
         current_user.log()
-        return Response(response=json.dumps({'status': 'Successful', 'checked-in': current_user.is_checked_in()}),
+        return Response(response=json.dumps(current_user.is_checked_in()),
                         status=200,
                         headers=None,
                         content_type='application/json',
@@ -281,7 +285,7 @@ def api_log():
 def api_log_status():
 
     if not current_user.is_anonymous():
-        return Response(response=json.dumps({'checked-in': current_user.is_checked_in()}),
+        return Response(response=json.dumps(current_user.is_checked_in()),
                         status=200,
                         headers=None,
                         content_type='application/json',
