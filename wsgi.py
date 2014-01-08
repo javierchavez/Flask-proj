@@ -32,10 +32,10 @@ class User(UserMixin):
     def _get_time_arr(self):
         weeknum = datetime.date.today().isocalendar()[1]
         collection = User._getcol()
-        # dt = collection.find({'name':self.username}, {'weeks.week':weeknum}).limit(1)[0]
-        last_few = collection.find({'name':self.username, 'weeks.week': weeknum})
+        dt = collection.find({'name':self.username}, {'weeks.week':weeknum}).count()
+        last_few = [x for x in collection.find({'name':self.username}, {'weeks': {'$elemMatch': {'week': weeknum}}})]
 
-        print "====>", last_few
+        print "====>", dt
 
 
     def get_curr_checkins(self):
