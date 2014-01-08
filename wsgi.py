@@ -8,6 +8,8 @@ from flask.ext.login import LoginManager, current_user, login_required, login_us
 from flask.ext.httpauth import HTTPBasicAuth
 import sys
 from dateutil import parser
+from fpdf import FPDF
+import gridfs
 
 class User(UserMixin):
 
@@ -28,11 +30,12 @@ class User(UserMixin):
         return self.weeks
 
     def _get_time_arr(self):
-        dayofweek = datetime.datetime.today().weekday()
         weeknum = datetime.date.today().isocalendar()[1]
         collection = User._getcol()
-        dt = collection.find({'name':self.username}, {'weeks.week':weeknum}).limit(1)[0]
-        print "====>",dt
+        # dt = collection.find({'name':self.username}, {'weeks.week':weeknum}).limit(1)[0]
+        last_few = collection.find({'name':self.username, 'weeks.week': weeknum})
+
+        print "====>", last_few
 
 
     def get_curr_checkins(self):
@@ -42,12 +45,11 @@ class User(UserMixin):
 
     def save_user_only(self):
         collection = User._getcol()
-        weeknum = datetime.date.today().isocalendar()[1]
         collection.insert({'name': self.username,
                            'password': self.password,
                            'checked-in': 'false',
                            'today': [],
-                           'weeks': [{'week': weeknum, "days": []}]})
+                           'weeks': []})
 
     def is_checked_in(self):
         collection = User._getcol()
@@ -66,13 +68,12 @@ class User(UserMixin):
 
         if finding["checked-in"] == 'true':
 
-            collection.update({'name': self.username}, {'$set': {'checked-in':'false'}})
-            # collection.update({'name': self.username}, {'$set': {'in': ''}} )
             cin = finding["in"]
             arr = finding["today"]
-            arr.append({'in': cin, 'out': str(timeGiven)} )
-
-            collection.update({'name': self.username}, {'$set': {'today': arr}} )
+            arr.append({'in': cin, 'out': str(timeGiven)})
+            totarr = finding["weeks"]
+            totarr.append({'week': weeknum, 'in': cin, 'out': str(timeGiven)})
+            collection.update({'name': self.username}, {'$set': {'today': arr, 'checked-in': 'false', 'weeks':totarr}})
 
         else:
             timeGiven = parser.parse(str(time))
@@ -187,7 +188,7 @@ def index():
 def main():
     print current_user.is_checked_in()["checked-in"]
     s = current_user.today()
-    print s
+    print current_user.get_curr_checkins()
     # current_user._get_time_arr()
 
     return render_template("main.html", data=s)
