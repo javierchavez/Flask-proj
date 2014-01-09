@@ -2,14 +2,14 @@ import datetime
 import json
 import os
 from pymongo import Connection
-from bson import json_util
+# from bson import json_util
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, make_response, Response
 from flask.ext.login import LoginManager, current_user, login_required, login_user, logout_user, UserMixin, confirm_login
 from flask.ext.httpauth import HTTPBasicAuth
 import sys
 from dateutil import parser
-from fpdf import FPDF
-import gridfs
+# from fpdf import FPDF
+# import gridfs
 
 class User(UserMixin):
 
@@ -19,9 +19,7 @@ class User(UserMixin):
         self.weeks = weeks
         self.todayarr = []
 
-    # @property
-    # def inout(self):
-    #
+
 
     def get_id(self):
         return unicode(str(self.username))
@@ -34,7 +32,7 @@ class User(UserMixin):
         dt = collection.find({"name": self.username}, {'_id': 0}).limit(1)[0]
         return dt["weeks"]
 
-    def get_curr_checkins(self):
+    def get_all_checkins(self):
         return self._get_time_arr()
 
     def save_user_only(self):
@@ -157,9 +155,6 @@ login_manager.login_view = "login"
 login_manager.login_message = u"Please log in to access this page."
 login_manager.refresh_view = "reauth"
 
-data_example = [{"week": 1, "days": [{"day": 1, "times": [{"in": "", "out": ""}]}]},
-                {"week": 2, "days": [{"day": 6, "times": [{"in": "", "out": ""}]}]},
-                {"week": 3, "days": [{"day": 3, "times": [{"in": "", "out": ""}]}]}]
 
 
 @auth.get_password
@@ -320,7 +315,7 @@ def api_log_today():
 def api_log_all():
 
     return jsonify({'user': current_user.username,
-                    'weeks': data_example})
+                    'weeks': current_user.get_all_checkins()})
 
 @app.route("/reauth", methods=["GET", "POST"])
 @login_required
