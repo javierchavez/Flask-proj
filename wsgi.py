@@ -9,8 +9,7 @@ from flask.ext.httpauth import HTTPBasicAuth
 import sys
 from dateutil import parser
 from fpdf import FPDF
-import gridfs
-
+from gridfs import GridFS
 
 class User(UserMixin):
 
@@ -112,7 +111,8 @@ class User(UserMixin):
     def get_grid():
         uri = mongodb_uri()
         conn = Connection(uri)
-        return gridfs(conn)
+        DB = conn.db
+        return GridFS(DB)
 
     @staticmethod
     def get(username):
@@ -197,22 +197,13 @@ def index():
 @app.route("/main")
 @login_required
 def main():
-    # print current_user.is_checked_in()["checked-in"]
     s = current_user.today()
-    # print current_user.get_curr_checkins()
-    # current_user._get_time_arr()
-
     return render_template("main.html", data=s)
 
 @app.route("/upload", methods=["POST", "GET"])
 @login_required
 def upload_file():
 
-    # def save_upload(filename):
-    #     if request.files.get('file'):
-    #         mongo.save_file(filename, request.files['file'])
-    #         return redirect(url_for('get_upload', filename=filename))
-    # return render_template('upload.html', filename=filename)
     if request.method == 'POST':
         # TODO check file
         file = request.files['file']
