@@ -311,22 +311,6 @@ def api_log_status():
 @app.route("/api/log/today", methods=["GET"])
 @auth.login_required
 def api_log_today():
-
-    # Custom JSON api with web interface call for crazy measures
-    # if not request.json:
-    #     return jsonify({'error': 'please use json'})
-
-
-
-        # data = {
-        #     'log': request.json['log'],
-        #     'week': datetime.date.today().isocalendar()[1],
-        #     'day':
-        #     'user': current_user.name
-        # }
-        # print datetime.date.today().isocalendar()[1]
-        # current_user.active = request.json["log"][0]
-        # print current_user.active
         s = current_user.today()
         return jsonify({'user': current_user.username,
                         'check-ins': s})
