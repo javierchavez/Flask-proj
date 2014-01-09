@@ -8,8 +8,9 @@ from flask.ext.login import LoginManager, current_user, login_required, login_us
 from flask.ext.httpauth import HTTPBasicAuth
 import sys
 from dateutil import parser
-# from fpdf import FPDF
-# import gridfs
+from fpdf import FPDF
+import gridfs
+
 
 class User(UserMixin):
 
@@ -108,6 +109,12 @@ class User(UserMixin):
         return collection
 
     @staticmethod
+    def get_grid():
+        uri = mongodb_uri()
+        conn = Connection(uri)
+        return gridfs(conn)
+
+    @staticmethod
     def get(username):
         collection = User._getcol()
         finding = collection.find_one({'name': username})
@@ -139,6 +146,7 @@ class User(UserMixin):
             return None
 
 
+ALLOWED_EXTENSIONS = set(['pdf'])
 
 application = app = Flask(__name__)
 
@@ -208,13 +216,10 @@ def upload_file():
     if request.method == 'POST':
         # TODO check file
         file = request.files['file']
-        # TODO check file name
         filename = file.filename
-        dir = os.path.dirname(__file__)
-        file_dir = os.path.join(dir, 'tmp/')
-
-        file.save(os.path.join(file_dir, filename))
-        return redirect(url_for('main'))
+        fs = User.get_grid()
+        oid = fs.put(file, content_type=file.content_type, filename=filename)
+        return redirect(url_for('main', oid=str(oid)))
 
     elif request.method == "GET":
         return render_template("uploadts.html")
