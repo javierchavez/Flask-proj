@@ -30,25 +30,19 @@ class User(UserMixin):
         return self.weeks
 
     def _get_time_arr(self):
-        weeknum = datetime.date.today().isocalendar()[1]
         collection = User._getcol()
-        dt = collection.find({'name':self.username}, {'weeks.week':weeknum}).count()
-        last_few = [x for x in collection.find({'name':self.username}, {'weeks': {'$elemMatch': {'week': weeknum}}})]
-
-        print "====>", dt
-
+        dt = collection.find({"name": self.username}, {'_id': 0}).limit(1)[0]
+        return dt["weeks"]
 
     def get_curr_checkins(self):
         return self._get_time_arr()
-
-
 
     def save_user_only(self):
         collection = User._getcol()
         collection.insert({'name': self.username,
                            'password': self.password,
                            'checked-in': 'false',
-                           'today': [],
+
                            'weeks': []})
 
     def is_checked_in(self):
@@ -64,36 +58,48 @@ class User(UserMixin):
         collection = User._getcol()
         finding = collection.find({'name': self.username}).limit(1)[0]
         weeknum = datetime.date.today().isocalendar()[1]
+        day = datetime.date.today().weekday()
         timeGiven = parser.parse(str(time))
 
         if finding["checked-in"] == 'true':
 
             cin = finding["in"]
-            arr = finding["today"]
-            arr.append({'in': cin, 'out': str(timeGiven)})
             totarr = finding["weeks"]
-            totarr.append({'week': weeknum, 'in': cin, 'out': str(timeGiven)})
-            collection.update({'name': self.username}, {'$set': {'today': arr, 'checked-in': 'false', 'weeks':totarr}})
+            totarr.append({'week': weeknum, 'in': cin, 'out': str(timeGiven), 'day': day})
+            collection.update({'name': self.username}, {'$set': {'checked-in': 'false', 'weeks': totarr}})
 
         else:
             timeGiven = parser.parse(str(time))
+            collection.update({'name': self.username}, {'$set': {'checked-in': 'true', 'in': str(timeGiven)}})
 
-            collection.update({'name': self.username}, {'$set': {'checked-in':'true'}} )
-            # serialize dt obj
-            collection.update({'name': self.username}, {'$set': {'in': str(timeGiven)}} )
-
-            # check to see if week is in DB if not add it
 
     def today(self):
-        col = User._getcol()
-        f = col.find({'name': self.username}).limit(1)[0]
-        print f
-        return f["today"]
-
-    def update_times(self):
-        collection = User._getcol()
-        finding = collection.find_one({'name': self.username})
         weeknum = datetime.date.today().isocalendar()[1]
+        day = datetime.date.today().weekday()
+        collection = User._getcol()
+        dt = collection.find({"name": self.username}, {'_id': 0}).limit(1)[0]
+        # print f
+        arr = []
+        for x in dt["weeks"]:
+            if x['week'] == weeknum and x['day'] == day:
+                arr.append(x)
+        return arr
+
+    def get_week(self, week):
+
+        collection = User._getcol()
+        dt = collection.find({"name": self.username}, {'_id': 0}).limit(1)[0]
+        # print f
+        arr = []
+        for x in dt["weeks"]:
+            if x['week'] == week:
+                arr.append(x)
+        return arr
+
+    # def update_times(self):
+    #     collection = User._getcol()
+    #     finding = collection.find_one({'name': self.username})
+    #     weeknum = datetime.date.today().isocalendar()[1]
 
 
     @staticmethod
@@ -180,15 +186,17 @@ def load_user(username):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
-
+    if current_user.is_anonymous():
+        return render_template("index.html")
+    else:
+        return render_template("main.html")
 
 @app.route("/main")
 @login_required
 def main():
-    print current_user.is_checked_in()["checked-in"]
+    # print current_user.is_checked_in()["checked-in"]
     s = current_user.today()
-    print current_user.get_curr_checkins()
+    # print current_user.get_curr_checkins()
     # current_user._get_time_arr()
 
     return render_template("main.html", data=s)
@@ -243,7 +251,7 @@ def login():
 
         elif login_user(user):
             flash("Logged in!")
-            return redirect(request.args.get("next") or url_for("main"))
+            return redirect(request.args.get("next") or url_for("index"))
         else:
             flash("Something went wrong.")
     else:

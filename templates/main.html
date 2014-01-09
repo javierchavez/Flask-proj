@@ -3,7 +3,13 @@
 {% block title %}{{ current_user.username }}{% endblock %}
 
 {% block content %}
-
+    <div class="row">
+        <div class="col-md-6 col-md-offset-6">
+            <p class="pull-right">
+                Welcome, <strong>{{ current_user.username }}</strong>
+            </p>
+        </div>
+    </div>
     <div class="row">
         <div class="col-md-6">
             <div class="panel panel-default">

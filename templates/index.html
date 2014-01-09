@@ -13,6 +13,6 @@
 
 {% block submain %}
     {% if current_user.is_anonymous() %}
-        <p><a class="btn btn-primary btn-lg" role="button" id="signup-btn">Sign up »</a></p>
+        <p><a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg" role="button" id="signup-btn">Sign up »</a></p>
     {% endif %}
 {% endblock %}
