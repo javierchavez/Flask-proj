@@ -3,13 +3,14 @@ import json
 import os
 from pymongo import Connection
 # from bson import json_util
-from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, make_response, Response
+from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, make_response, Response, abort, Request
 from flask.ext.login import LoginManager, current_user, login_required, login_user, logout_user, UserMixin, confirm_login
 from flask.ext.httpauth import HTTPBasicAuth
 import sys
 from dateutil import parser
-from fpdf import FPDF
 from gridfs import GridFS
+from gridfs.errors import NoFile
+
 
 class User(UserMixin):
 
@@ -40,7 +41,7 @@ class User(UserMixin):
         collection.insert({'name': self.username,
                            'password': self.password,
                            'checked-in': 'false',
-
+                           'files': [],
                            'weeks': []})
 
     def is_checked_in(self):
@@ -63,7 +64,7 @@ class User(UserMixin):
 
             cin = finding["in"]
             totarr = finding["weeks"]
-            totarr.append({'week': weeknum, 'in': cin, 'out': str(timeGiven), 'day': day})
+            totarr.append({'week': weeknum, 'in': '2014-01-8 12:00:31-07:00', 'out': '2014-01-8 17:03:31-07:00', 'day': 3})
             collection.update({'name': self.username}, {'$set': {'checked-in': 'false', 'weeks': totarr}})
 
         else:
@@ -83,6 +84,14 @@ class User(UserMixin):
                 arr.append(x)
         return arr
 
+    def add_file(self, fname):
+        collection = User._getcol()
+        finding = collection.find({'name': self.username}).limit(1)[0]
+        filesarr = finding["files"]
+        print filesarr
+        filesarr = [fname]
+        collection.update({'name': self.username}, {'$set': {'files': fname}})
+
     def get_week(self, week):
 
         collection = User._getcol()
@@ -92,6 +101,7 @@ class User(UserMixin):
         for x in dt["weeks"]:
             if x['week'] == week:
                 arr.append(x)
+        print arr
         return arr
 
     # def update_times(self):
@@ -197,8 +207,10 @@ def index():
 @app.route("/main")
 @login_required
 def main():
+    weeknum = datetime.date.today().isocalendar()[1]
     s = current_user.today()
-    return render_template("main.html", data=s)
+    c = json.dumps(current_user.get_week(weeknum))
+    return render_template("main.html", data=s, fdata=c)
 
 @app.route("/upload", methods=["POST", "GET"])
 @login_required
@@ -207,9 +219,11 @@ def upload_file():
     if request.method == 'POST':
         # TODO check file
         file = request.files['file']
+        userFN = request.form['filename']
         filename = file.filename
         fs = User.get_grid()
         oid = fs.put(file, content_type=file.content_type, filename=filename)
+        current_user.add_file(str(oid))
         return redirect(url_for('main', oid=str(oid)))
 
     elif request.method == "GET":
@@ -218,16 +232,29 @@ def upload_file():
 @app.route("/download", methods=["GET"])
 @login_required
 def download_file():
+    FS = User.get_grid()
 
-    dir = os.path.dirname(__file__)
-    file_dir = os.path.join(dir, 'tmp/hellop.txt')
+    files = [FS.get_last_version(file) for file in FS.list()]
+    file_list = ['http://timetracker.aws.af.cm%s' % (url_for('serve_gridfs_file_by_name', filename=str(file.name))) for file in files]
+    file_list = "\n".join(['<li><a href="%s">%s</a></li>' % \
+                           (url_for('serve_gridfs_file_by_name', filename=str(file.name)), file.name) \
+                           for file in files])
+    print file_list
 
-    response = make_response(file_dir)
 
-    response.headers["Content-Disposition"] = "attachment; filename=timesheet.txt"
-    return response
+    return file_list
 
-
+# get file by filename
+@app.route('/<filename>')
+def serve_gridfs_file_by_name(filename):
+    FS = User.get_grid()
+    try:
+        file = FS.get_last_version(filename)
+        response = make_response(file.read())
+        response.mimetype = file.content_type
+        return response
+    except NoFile:
+        abort(404)
 
 @app.route("/login", methods=["POST"])
 def login():

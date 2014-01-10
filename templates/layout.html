@@ -7,8 +7,24 @@
     <title>{% block title %}{% endblock %}</title>
     <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/css/modified.css" rel="stylesheet">
-    <link href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/css/datepicker.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.min.js"></script>
+
     <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/js/bootstrap-datepicker.min.js"></script>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/css/datepicker.min.css" rel="stylesheet">
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script type="application/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+    <!-- Scripts in development mode -->
+    <script type="application/javascript" src="/static/js/libs/jspdf.js"></script>
+    <script type="application/javascript" src="/static/js/libs/Downloadify/js/downloadify.min.js"></script>
+    <script type="application/javascript" src="/static/js/libs/Downloadify/js/swfobject.js"></script>
+    <script type="application/javascript" src="/static/js/libs/Blob.js/BlobBuilder.js"></script>
+    <script type="application/javascript" src="/static/js/libs/Deflate/adler32cs.js"></script>
+    <script type="application/javascript" src="/static/js/libs/jspdf.plugin.addimage.js"></script>
+    <script type="application/javascript" src="/static/js/libs/jspdf.plugin.standard_fonts_metrics.js"></script>
+    <script type="application/javascript" src="/static/js/libs/jspdf.plugin.split_text_to_size.js"></script>
+    <script type="application/javascript" src="/static/js/libs/FileSaver.js/FileSaver.js"></script>
 
 
     <!-- Just for debugging purposes. Don't actually copy this line! -->
@@ -35,6 +51,11 @@
 
 </head>
 <body style="">
+<script>
+
+
+
+</script>
 
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="container">
@@ -120,16 +141,16 @@
         <p>© Javier C 2014</p>
     </footer>
 </div> <!-- /container -->
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://code.jquery.com/jquery.js"></script>
-<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"/>
+
 
 <script>
-    $('#sandbox-container input').datepicker({
+    // You'll need to make your image into a Data URL
+    // Use http://dataurl.net/#dataurlmaker
+
+
+    $("#signup-btn").click(function(){
+        load();
     });
-{#    $("#signup-btn").click(function(){#}
-{#        $("#signup-form").fadeIn()#}
-{#    })#}
     $('#data-time').val(new Date().toString());
 </script>
 </body>
