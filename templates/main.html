@@ -91,9 +91,10 @@
             var end= ''
             for(var x = 0; x < logdata.length; x++){
                 if (logdata[x]["day"]== 0){
-
-                    doc.text(45, 95, "12:92");
-                    doc.text(45, 109, "12:92");
+                    var data = new Date(logdata[x]["in"])
+                    doc.text(45, 95, data.getHours().toString()+":"+data.getMinutes().toString() );
+                    var data = new Date(logdata[x]["out"])
+                    doc.text(45, 109, data.getHours().toString()+":"+data.getMinutes().toString() );
                     var ms = new Date(logdata[x]["out"]) - new Date(logdata[x]["in"])
                     var diffHrs = Math.round((ms % 86400000) / 3600000);
                     doc.text(45, 122, diffHrs.toString());
@@ -104,29 +105,43 @@
                     start += day + "/" + month + "/" + year
                 }
                 else if(logdata[x]["day"]== 1){
-                    doc.text(65, 95, "12:92");
-                    doc.text(65, 109, "12:92");
+                    var data = new Date(logdata[x]["in"])
+
+                    doc.text(65, 95, data.getHours().toString()+":"+data.getMinutes().toString() );
+                    var data = new Date(logdata[x]["out"])
+
+                    doc.text(65, 109, data.getHours().toString()+":"+data.getMinutes().toString() );
                     var ms = new Date(logdata[x]["out"]) - new Date(logdata[x]["in"])
                     var diffHrs = Math.round((ms % 86400000) / 3600000);
                     doc.text(65, 122, diffHrs.toString());
 
                 }else if(logdata[x]["day"]== 2){
-                    doc.text(95, 95, "12:92");
-                    doc.text(95, 109, "12:92");
+                    var data = new Date(logdata[x]["in"])
+                    doc.text(95, 95, data.getHours().toString()+":"+data.getMinutes().toString() );
+                    var data = new Date(logdata[x]["out"])
+
+                    doc.text(95, 109, data.getHours().toString()+":"+data.getMinutes().toString() );
                     var ms = new Date(logdata[x]["out"]) - new Date(logdata[x]["in"])
                     var diffHrs = Math.round((ms % 86400000) / 3600000);
                     doc.text(95, 122, diffHrs.toString());
 
                 }else if(logdata[x]["day"]== 3){
-                    doc.text(125, 95, "12:92");
-                    doc.text(125, 109, "12:92");
+                    var data = new Date(logdata[x]["in"])
+                    doc.text(125, 95, data.getHours().toString()+":"+data.getMinutes().toString() );
+
+                    var data = new Date(logdata[x]["out"])
+
+                    doc.text(125, 109, data.getHours().toString()+":"+data.getMinutes().toString() );
                     var ms = new Date(logdata[x]["out"]) - new Date(logdata[x]["in"])
                     var diffHrs = Math.round((ms % 86400000) / 3600000);
                     doc.text(125, 122, diffHrs.toString());
 
                 }else if(logdata[x]["day"]== 4){
-                    doc.text(135, 95, "12:92");
-                    doc.text(135, 109, "12:92");
+                    var data = new Date(logdata[x]["in"])
+                    doc.text(135, 95, data.getHours().toString()+":"+data.getMinutes().toString() );
+                    var data = new Date(logdata[x]["out"])
+
+                    doc.text(135, 109, data.getHours().toString()+":"+data.getMinutes().toString())
                     var ms = new Date(logdata[x]["out"]) - new Date(logdata[x]["in"])
                     var diffHrs = Math.round((ms % 86400000) / 3600000);
                     doc.text(135, 122, diffHrs.toString());
