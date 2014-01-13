@@ -340,6 +340,13 @@ def api_log_all():
     return jsonify({'user': current_user.username,
                     'weeks': current_user.get_all_checkins()})
 
+@app.route("/api/log/<int:wk>", methods=["GET"])
+@auth.login_required
+def api_get_specific(wk):
+
+    return jsonify({'user': current_user.username,
+                    'weeks': current_user.get_week(wk)})
+
 @app.route("/reauth", methods=["GET", "POST"])
 @login_required
 def reauth():

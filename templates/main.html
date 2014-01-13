@@ -91,7 +91,7 @@
             }
 
 
-            var logdata = {{ fdata | safe }} ;
+            var logData = {{ fdata | safe }} ;
             var imgData = IMAGE_DATA;
             var doc = new jsPDF('landscape');
 
@@ -99,27 +99,27 @@
             doc.addImage(imgData, 'JPEG', 10, 20, 295, 190);
             var start= '';
             var end= '';
-            for(var x = 0; x < logdata.length; x++){
-                if (logdata[x]["day"]== 0){
-                    writeTxt(42,logdata[x]);
-                    var st = new Date(logdata[x]["in"])
+            for(var x = 0; x < logData.length; x++){
+                if (logData[x]["day"]== 0){
+                    writeTxt(42,logData[x]);
+                    var st = new Date(logData[x]["in"])
                     var day = st.getDate()
                     var month = st.getMonth() + 1
                     var year = st.getFullYear()
                     start += day + "/" + month + "/" + year
                 }
-                else if(logdata[x]["day"]== 1){
-                    writeTxt(65, logdata[x])
+                else if(logData[x]["day"]== 1){
+                    writeTxt(65, logData[x])
 
-                }else if(logdata[x]["day"]== 2){
-                    writeTxt(90, logdata[x])
+                }else if(logData[x]["day"]== 2){
+                    writeTxt(90, logData[x])
 
-                }else if(logdata[x]["day"]== 3){
-                    writeTxt(115, logdata[x])
+                }else if(logData[x]["day"]== 3){
+                    writeTxt(115, logData[x])
 
-                }else if(logdata[x]["day"]== 4){
-                    writeTxt(125, logdata[x])
-                    var st = new Date(logdata[x]["in"])
+                }else if(logData[x]["day"]== 4){
+                    writeTxt(125, logData[x])
+                    var st = new Date(logData[x]["in"])
                     var day = st.getDate()
                     var month = st.getMonth() + 1
                     var year = st.getFullYear()
