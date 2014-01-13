@@ -86,7 +86,7 @@
                 var data = new Date(obj["out"])
                 doc.text(pos, 105, data.getHours().toString()+":"+data.getMinutes().toString() );
                 var ms = new Date(obj["out"]) - new Date(obj["in"])
-                var diffHrs = Math.round((ms % 86400000) / 3600000);
+                var diffHrs = ((ms % 86400000) / 3600000).toFixed(2);
                 doc.text(pos, 122, diffHrs.toString());
             }
 
