@@ -51,7 +51,8 @@
 
                         <button onclick="parent.location='{{ url_for('upload_file') }}'" type="button" class="btn btn-default">Upload new time sheet</button>
                     </form>
-                    <div class="span5" id="sandbox-container"><input type="text"></div>                </div>
+                    <div class="span5" id="sandbox-container"><input type="text"></div>
+                </div>
             </div>
 
         </div>
@@ -149,18 +150,18 @@
 
             //write total time worked
             function tot (){
-                for(var x = 0; x < TOTALS.length; x++){
+                for(var day = 0; day < TOTALS.length; day++){
                     var total=0.0;
-                    for(var xx = 0; xx < TOTALS[x].length; xx++){
-                        if (logData[xx]["day"] == x){
+                    for(var checkin = 0; checkin < TOTALS[day].length; checkin++){
+                        if (logData[checkin]["day"] == day){
 
-                            var ms = new Date(logData[xx]["out"]) - new Date(logData[xx]["in"])
+                            var ms = new Date(logData[checkin]["out"]) - new Date(logData[checkin]["in"])
                             console.log(total + " before ")
                             total = parseFloat(total) + ((ms % 86400000) / 3600000) ;
                             console.log(total+ " after ")
                         }
                     }
-                    doc.text(POSITION_TOTAL[x], 122, total.toFixed(2));
+                    doc.text(POSITION_TOTAL[day], 122, total.toFixed(2));
                 }
             }
 
