@@ -99,16 +99,16 @@
                 var multiplier=0;
                 if (posx.length <= 3){
                     multiplier = (posx.length-1)*8;
-                }
-                // write time in
-                var data = new Date(obj["in"])
-                var mins = ('0' + data.getMinutes()).slice(-2)
-                doc.text(pos+multiplier, 91, data.getHours().toString()+":"+mins );
+                    // write time in
+                    var data = new Date(obj["in"])
+                    var mins = ('0' + data.getMinutes()).slice(-2)
+                    doc.text(pos+multiplier, 91, data.getHours().toString()+":"+mins );
 
-                //write time out
-                var data = new Date(obj["out"])
-                var mins = ('0' + data.getMinutes()).slice(-2)
-                doc.text(pos+multiplier, 105, data.getHours().toString()+":"+mins );
+                    //write time out
+                    var data = new Date(obj["out"])
+                    var mins = ('0' + data.getMinutes()).slice(-2)
+                    doc.text(pos+multiplier, 105, data.getHours().toString()+":"+mins );
+                }
 
 
             }
@@ -166,9 +166,9 @@
                         if (logData[checkin]["day"] == day){
 
                             var ms = new Date(logData[checkin]["out"]) - new Date(logData[checkin]["in"])
-                            console.log(total + " before ")
-                            total = parseFloat(total) + ((ms % 86400000) / 3600000) ;
-                            console.log(total+ " after ")
+                            //console.log(total + " before ")
+                            total = total + ((ms % 86400000) / 3600000) ;
+                            //console.log(total+ " after ")
                         }
                     }
                     doc.text(POSITION_TOTAL[day], 122, total.toFixed(2)+" hrs");

@@ -347,7 +347,7 @@ def api_log_today():
 def api_log_all():
 
     return jsonify({'user': current_user.username,
-                    'weeks': current_user.get_all_checkins()})
+                    'check-ins': current_user.get_all_checkins()})
 
 
 @app.route("/api/log/<int:wk>", methods=["GET"])
@@ -355,7 +355,7 @@ def api_log_all():
 def api_get_specific(wk):
 
     return jsonify({'user': current_user.username,
-                    'weeks': current_user.get_week(wk)})
+                    'check-ins': current_user.get_week(wk)})
 
 
 # @app.route("/reauth", methods=["GET", "POST"])
