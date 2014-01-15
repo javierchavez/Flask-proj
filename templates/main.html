@@ -118,7 +118,7 @@
 
             doc.setFontSize(8);
             doc.addImage(imgData, 'JPEG', 10, 20, 295, 190);
-            var POSITION_TOTAL = [204, 48,68,97,125,153,178]
+            var POSITION_TOTAL = [200, 45,68,97,123,149,176]
 
             var TOTALS = [[],[],[],[],[],[],[]];
             for(var x = 0; x < logData.length; x++){
@@ -161,7 +161,7 @@
                             console.log(total+ " after ")
                         }
                     }
-                    doc.text(POSITION_TOTAL[day], 122, total.toFixed(2));
+                    doc.text(POSITION_TOTAL[day], 122, total.toFixed(2)+" hrs");
                 }
             }
 
