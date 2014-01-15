@@ -3,8 +3,8 @@ import json
 import os
 from pymongo import Connection
 # from bson import json_util
-from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, make_response, Response, abort, Request
-from flask.ext.login import LoginManager, current_user, login_required, login_user, logout_user, UserMixin, confirm_login
+from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, make_response, Response, abort
+from flask.ext.login import LoginManager, current_user, login_required, login_user, logout_user, UserMixin
 from flask.ext.httpauth import HTTPBasicAuth
 import sys
 from dateutil import parser
@@ -14,7 +14,7 @@ from gridfs.errors import NoFile
 
 class User(UserMixin):
 
-    def __init__(self, username, password, weeks=[], in_out={"in": "", "out": ""}):
+    def __init__(self, username, password, weeks=[]):
         self.username = username
         self.password = password
         self.weeks = weeks
@@ -57,30 +57,30 @@ class User(UserMixin):
     def log(self, time):
         collection = User._getcol()
         finding = collection.find({'name': self.username}).limit(1)[0]
-        timeGiven = parser.parse(str(time))
+        parsed_time = parser.parse(str(time))
 
         if finding["checked-in"] == 'true':
-
             cin = finding["in"]
             totarr = finding["weeks"]
-            totarr.append({'week': parser.parse(str(time)).isocalendar()[1], 'in': cin, 'out': str(timeGiven), 'day': parser.parse(str(time)).isocalendar()[2]})
+            totarr.append({'week': parsed_time.isocalendar()[1],
+                           'in': cin, 'out': str(parsed_time),
+                           'day': parsed_time.isocalendar()[2]})
+
             collection.update({'name': self.username}, {'$set': {'checked-in': 'false', 'weeks': totarr}})
 
         else:
-            timeGiven = parser.parse(str(time))
-            collection.update({'name': self.username}, {'$set': {'checked-in': 'true', 'in': str(timeGiven)}})
-
+            collection.update({'name': self.username}, {'$set': {'checked-in': 'true', 'in': str(parsed_time)}})
 
     def today(self):
-        weeknum = datetime.date.today().isocalendar()[1]
-        day = datetime.date.today().isocalendar()[2]
+        _week = datetime.date.today().isocalendar()[1]
+        _day = datetime.date.today().isocalendar()[2]
 
         collection = User._getcol()
         dt = collection.find({"name": self.username}, {'_id': 0}).limit(1)[0]
         # print f
         arr = []
         for x in dt["weeks"]:
-            if x['week'] == weeknum and x['day'] == day:
+            if x['week'] == _week and x['day'] == _day:
                 arr.append(x)
         return arr
 
@@ -88,9 +88,10 @@ class User(UserMixin):
         collection = User._getcol()
         finding = collection.find({'name': self.username}).limit(1)[0]
         filesarr = finding["files"]
-        print filesarr
-        filesarr = [fname]
-        collection.update({'name': self.username}, {'$set': {'files': fname}})
+        # print filesarr
+        # filesarr = [fname]
+        filesarr.append(fname)
+        collection.update({'name': self.username}, {'$set': {'files': filesarr}})
 
     def get_week(self, week):
 
@@ -109,7 +110,6 @@ class User(UserMixin):
     #     finding = collection.find_one({'name': self.username})
     #     weeknum = datetime.date.today().isocalendar()[1]
 
-
     @staticmethod
     def _getcol():
         uri = mongodb_uri()
@@ -121,8 +121,8 @@ class User(UserMixin):
     def get_grid():
         uri = mongodb_uri()
         conn = Connection(uri)
-        DB = conn.db
-        return GridFS(DB)
+        db = conn.db
+        return GridFS(db)
 
     @staticmethod
     def get(username):
@@ -131,7 +131,7 @@ class User(UserMixin):
 
         if finding is not None:
             # print finding
-            return User(finding["name"], finding["password"], finding["weeks"], finding["checked-in"])
+            return User(finding["name"], finding["password"], finding["weeks"])
         else:
             return None
 
@@ -145,6 +145,7 @@ class User(UserMixin):
             return User(finding["name"], finding["password"], finding["weeks"])
         else:
             return None
+
     @staticmethod
     def get_password(username):
         collection = User._getcol()
@@ -162,7 +163,7 @@ application = app = Flask(__name__)
 
 SECRET_KEY = "KJ&DKJEu*&he58*9fhsHh9f8y8"
 
-app.debug=True
+app.debug = True
 
 app.config.from_object(__name__)
 
@@ -172,7 +173,6 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 login_manager.login_message = u"Please log in to access this page."
 login_manager.refresh_view = "reauth"
-
 
 
 @auth.get_password
@@ -187,9 +187,11 @@ def get_password(name):
 
 # @auth.verify_password(password)
 
+
 @auth.error_handler
 def unauthorized():
-    return make_response(jsonify( { 'error': 'Unauthorized access' } ), 401)
+    return make_response(jsonify({'error': 'Unauthorized access'}), 401)
+
 
 @login_manager.user_loader
 def load_user(username):
@@ -202,7 +204,8 @@ def index():
     if current_user.is_anonymous():
         return render_template("index.html")
     else:
-        return render_template("main.html")
+        return redirect(url_for('main'))
+
 
 @app.route("/main")
 @login_required
@@ -211,6 +214,7 @@ def main():
     s = current_user.today()
     c = json.dumps(current_user.get_week(weeknum))
     return render_template("main.html", data=s, fdata=c)
+
 
 @app.route("/upload", methods=["POST", "GET"])
 @login_required
@@ -232,36 +236,38 @@ def upload_file():
 @app.route("/download", methods=["GET"])
 @login_required
 def download_file():
-    FS = User.get_grid()
+    fs = User.get_grid()
 
-    files = [FS.get_last_version(file) for file in FS.list()]
+    files = [fs.get_last_version(file) for file in fs.list()]
     file_list = ['http://timetracker.aws.af.cm%s' % (url_for('serve_gridfs_file_by_name', filename=str(file.name))) for file in files]
     file_list = "\n".join(['<li><a href="%s">%s</a></li>' % \
                            (url_for('serve_gridfs_file_by_name', filename=str(file.name)), file.name) \
                            for file in files])
     print file_list
 
-
     return file_list
 
 # get file by filename
+
+
 @app.route('/<filename>')
 def serve_gridfs_file_by_name(filename):
-    FS = User.get_grid()
+    fs = User.get_grid()
     try:
-        file = FS.get_last_version(filename)
-        response = make_response(file.read())
-        response.mimetype = file.content_type
+        file_ = fs.get_last_version(filename)
+        response = make_response(file_.read())
+        response.mimetype = file_.content_type
         return response
     except NoFile:
         abort(404)
+
 
 @app.route("/login", methods=["POST"])
 def login():
     if request.method == "POST" and "username" in request.form:
         username = request.form["username"]
         password = request.form["password"]
-        remember = request.form.get("remember", "no") == "yes"
+        #remember = request.form.get("remember", "no") == "yes"
 
         user = User.check_login(username, password)
         if user is None:
@@ -269,13 +275,14 @@ def login():
 
         elif login_user(user):
             flash("Logged in!")
-            return redirect(request.args.get("next") or url_for("index"))
+            return redirect(request.args.get("next") or url_for("main"))
         else:
             flash("Something went wrong.")
     else:
         flash("Something went wrong.")
 
     return render_template("login.html")
+
 
 @app.route("/api/login", methods=["POST"])
 @auth.login_required
@@ -287,7 +294,6 @@ def api_login():
                         headers=None,
                         content_type='application/json',
                         direct_passthrough=False)
-
 
 
 @app.route("/log", methods=["POST"])
@@ -315,6 +321,7 @@ def api_log():
                         content_type='application/json',
                         direct_passthrough=False)
 
+
 @app.route("/api/log/status", methods=["GET"])
 @auth.login_required
 def api_log_status():
@@ -326,12 +333,14 @@ def api_log_status():
                         content_type='application/json',
                         direct_passthrough=False)
 
+
 @app.route("/api/log/today", methods=["GET"])
 @auth.login_required
 def api_log_today():
         s = current_user.today()
         return jsonify({'user': current_user.username,
                         'check-ins': s})
+
 
 @app.route("/api/log/all", methods=["GET"])
 @auth.login_required
@@ -340,6 +349,7 @@ def api_log_all():
     return jsonify({'user': current_user.username,
                     'weeks': current_user.get_all_checkins()})
 
+
 @app.route("/api/log/<int:wk>", methods=["GET"])
 @auth.login_required
 def api_get_specific(wk):
@@ -347,14 +357,16 @@ def api_get_specific(wk):
     return jsonify({'user': current_user.username,
                     'weeks': current_user.get_week(wk)})
 
-@app.route("/reauth", methods=["GET", "POST"])
-@login_required
-def reauth():
-    if request.method == "POST":
-        confirm_login()
-        flash(u"Reauthenticated.")
-        return redirect(request.args.get("next") or url_for("index"))
-    return render_template("reauth.html")
+
+# @app.route("/reauth", methods=["GET", "POST"])
+# @login_required
+# def reauth():
+#     if request.method == "POST":
+#         confirm_login()
+#         flash(u"Reauthenticated.")
+#         return redirect(request.args.get("next") or url_for("index"))
+#     return render_template("reauth.html")
+
 
 @app.route("/sign-up", methods=["GET", "POST"])
 def signup():
@@ -364,7 +376,7 @@ def signup():
 
         user = User.get(username)
         if user is None:
-            user = User(username, password, 'false')
+            user = User(username, password, [])
             user.save_user_only()
             login_user(user)
             return redirect(url_for("main"))
@@ -376,13 +388,13 @@ def signup():
         return render_template("signup.html")
 
 
-
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
     flash("Logged out.")
     return redirect(url_for("index"))
+
 
 def mongodb_uri():
     local = os.environ.get("MONGODB", None)
