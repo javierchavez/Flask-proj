@@ -26,10 +26,11 @@
                     </form>
                     <div class="row" id="time-table">
                         <h4>Today's Checkins</h4>
-                        <table class="table">
+                        <table id="today-table" class="table table-bordered">
                             {% for r in data %}
                                 <tr><td>in: {{ r["in"] }} </td><td>out: {{ r["out"] }} </td></tr>
                             {% endfor %}
+
                         </table>
                     </div>
 
@@ -80,6 +81,15 @@
             $(window).resize(function() {
                 $('#ifmd').width($(window).width() * 0.9);
             });
+
+
+{#            var checkIns = {{ data | safe }} ;#}
+{#            var tbData = "";#}
+{#            for(var x = 0; x < checkIns.length; x++){#}
+{#                tbData += '<tr>' + '<td>' + 'in:' + new Date(checkIns[x]["in"]).toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1") + '</td>' + '<td>' + 'out:' + new Date(checkIns[x]["out"]).toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1"); + '</td></tr>'#}
+{#            }#}
+
+{#            $("#time-table").html(tbData)#}
 
             $(".sub-time").click(function(){
                 $("#data-time").val(new Date())
@@ -191,6 +201,18 @@
             return arr
         }
 
+        Number.prototype.toTime = function () {
+            var seconds = Math.floor(this),
+                    hours = Math.floor(seconds / 3600);
+            seconds -= hours*3600;
+            var minutes = Math.floor(seconds / 60);
+            seconds -= minutes*60;
+
+            if (hours   < 10) {hours   = "0"+hours;}
+            if (minutes < 10) {minutes = "0"+minutes;}
+            if (seconds < 10) {seconds = "0"+seconds;}
+            return hours+':'+minutes+':'+seconds;
+        }
 
         Date.prototype.getWeekNumber = function(){
             var d = new Date(+this);
