@@ -20,12 +20,12 @@
                     <form action="{{ url_for('log') }}" method=post role="form">
 
                         <input id="data-time" type=hidden name=time value="" type="text" class="form-control">
-                        <button type="submit" class="btn btn-primary" {% if not current_user.is_checked_in()["checked-in"] == 'false' %} disabled="disabled" {% endif %}>Check in</button>
-                        <button type="submit" class="btn btn-danger" {% if not current_user.is_checked_in()["checked-in"] == 'true' %} disabled="disabled" {% endif %} >Checkout</button>
+                        <button type="submit" class="btn btn-primary sub-time" {% if not current_user.is_checked_in()["checked-in"] == 'false' %} disabled="disabled" {% endif %}>Check in</button>
+                        <button type="submit" class="btn btn-danger sub-time" {% if not current_user.is_checked_in()["checked-in"] == 'true' %} disabled="disabled" {% endif %} >Checkout</button>
 {#                        <button type="submit" class="btn btn-primary">{%  if current_user.active[0].upper() == 'T'  %}Checkout{% else %}Check in{% endif %}</button>#}
                     </form>
                     <div class="row" id="time-table">
-
+                        <h4>Today's Checkins</h4>
                         <table class="table">
                             {% for r in data %}
                                 <tr><td>in: {{ r["in"] }} </td><td>out: {{ r["out"] }} </td></tr>
@@ -80,54 +80,92 @@
                 $('#ifmd').width($(window).width() * 0.9);
             });
 
-            var writeTxt = function(pos, obj){
+            $(".sub-time").click(function(){
+                $("#data-time").val(new Date())
+            })
+
+            var writeTxt = function(pos, obj, posx){
+                var multiplier=0;
+                if (posx.length <= 3){
+                    multiplier = (posx.length-1)*8;
+                }
+                // write time in
                 var data = new Date(obj["in"])
-                doc.text(pos, 91, data.getHours().toString()+":"+data.getMinutes().toString() );
+                var mins = ('0' + data.getMinutes()).slice(-2)
+                doc.text(pos+multiplier, 91, data.getHours().toString()+":"+mins );
+
+                //write time out
                 var data = new Date(obj["out"])
-                doc.text(pos, 105, data.getHours().toString()+":"+data.getMinutes().toString() );
-                var ms = new Date(obj["out"]) - new Date(obj["in"])
-                var diffHrs = ((ms % 86400000) / 3600000).toFixed(2);
-                doc.text(pos, 122, diffHrs.toString());
+                var mins = ('0' + data.getMinutes()).slice(-2)
+                doc.text(pos+multiplier, 105, data.getHours().toString()+":"+mins );
+
+
             }
 
-
+            {# using safe to enable JSON to be rendered #}
             var logData = {{ fdata | safe }} ;
+            {# sort arr by day to get start and end #}
+            //console.log(logData)
+            logData.sort(function(a,b){
+                var c = a["day"]
+                var d = b["day"]
+                return c-d;
+            })
+            //console.log(logData)
             var imgData = IMAGE_DATA;
             var doc = new jsPDF('landscape');
 
             doc.setFontSize(8);
             doc.addImage(imgData, 'JPEG', 10, 20, 295, 190);
-            var start= '';
-            var end= '';
-            for(var x = 0; x < logData.length; x++){
-                if (logData[x]["day"]== 0){
-                    writeTxt(42,logData[x]);
-                    var st = new Date(logData[x]["in"])
-                    var day = st.getDate()
-                    var month = st.getMonth() + 1
-                    var year = st.getFullYear()
-                    start += day + "/" + month + "/" + year
-                }
-                else if(logData[x]["day"]== 1){
-                    writeTxt(65, logData[x])
+            var POSITION_TOTAL = [204, 48,68,97,125,153,178]
 
-                }else if(logData[x]["day"]== 2){
-                    writeTxt(90, logData[x])
+            var TOTALS = [[],[],[],[],[],[],[]];
+            for(var x = 0; x < logData.length; x++){
+                if (logData[x]["day"]== 1){
+                    TOTALS[1].push(1)
+                    writeTxt(42,logData[x], TOTALS[1]);
+
+                }
+                else if(logData[x]["day"]== 2){
+                    TOTALS[2].push(1)
+                    writeTxt(63, logData[x], TOTALS[2])
 
                 }else if(logData[x]["day"]== 3){
-                    writeTxt(115, logData[x])
+                    TOTALS[3].push(1)
+                    writeTxt(90, logData[x], TOTALS[3])
 
                 }else if(logData[x]["day"]== 4){
-                    writeTxt(125, logData[x])
-                    var st = new Date(logData[x]["in"])
-                    var day = st.getDate()
-                    var month = st.getMonth() + 1
-                    var year = st.getFullYear()
-                    end += day + "/" + month + "/" + year                }
-            }
-            end += ('10' + "/" + '1'+ "/" + '2013')
+                    TOTALS[4].push(1)
+                    writeTxt(115, logData[x], TOTALS[4])
 
-            doc.text(218, 53, (start+ " - "+ end).toString());
+                }else if(logData[x]["day"]== 5){
+                    TOTALS[5].push(1)
+                    writeTxt(125, logData[x], TOTALS[5])
+
+                }
+            }
+
+            tot()
+
+            //write total time worked
+            function tot (){
+                for(var x = 0; x < TOTALS.length; x++){
+                    var total=0.0;
+                    for(var xx = 0; xx < TOTALS[x].length; xx++){
+                        if (logData[xx]["day"] == x){
+
+                            var ms = new Date(logData[xx]["out"]) - new Date(logData[xx]["in"])
+                            console.log(total + " before ")
+                            total = parseFloat(total) + ((ms % 86400000) / 3600000) ;
+                            console.log(total+ " after ")
+                        }
+                    }
+                    doc.text(POSITION_TOTAL[x], 122, total.toFixed(2));
+                }
+            }
+
+            var se = getStartEnd(logData)
+            doc.text(218, 53, (se[0]+ " - "+ se[1]));
 
             var string = doc.output('datauristring');
 
@@ -135,11 +173,31 @@
 
         });
 
+        function getStartEnd(data){
+            var arr = ["",""]
+            var st = new Date(data[0]["in"])
+            var dayst = st.getDate()
+            var monthst = st.getMonth() + 1
+            var yearst = st.getFullYear()
+
+            arr[0] = monthst + "/" + dayst + "/" + yearst
+            var end = new Date(data[data.length-1]["out"])
+            var dayend = end.getDate()
+            var monthend = end.getMonth() + 1
+            var yearend = end.getFullYear()
+            arr[1] = monthend + "/" + dayend + "/" + yearend
+
+            return arr
+        }
+
+
         Date.prototype.getWeekNumber = function(){
             var d = new Date(+this);
             d.setHours(0,0,0);
             d.setDate(d.getDate()+4-(d.getDay()||7));
             return Math.ceil((((d-new Date(d.getFullYear(),0,1))/8.64e7)+1)/7);
         };
+
+
     </script>
 {% endblock %}

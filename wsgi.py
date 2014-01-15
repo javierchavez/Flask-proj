@@ -19,6 +19,7 @@ class User(UserMixin):
         self.password = password
         self.weeks = weeks
         self.todayarr = []
+        # day needs to be consistent with java/JS
 
 
 
@@ -56,15 +57,13 @@ class User(UserMixin):
     def log(self, time):
         collection = User._getcol()
         finding = collection.find({'name': self.username}).limit(1)[0]
-        weeknum = datetime.date.today().isocalendar()[1]
-        day = datetime.date.today().weekday()
         timeGiven = parser.parse(str(time))
 
         if finding["checked-in"] == 'true':
 
             cin = finding["in"]
             totarr = finding["weeks"]
-            totarr.append({'week': weeknum, 'in': '2014-01-8 12:00:31-07:00', 'out': '2014-01-8 17:03:31-07:00', 'day': 3})
+            totarr.append({'week': parser.parse(str(time)).isocalendar()[1], 'in': cin, 'out': str(timeGiven), 'day': parser.parse(str(time)).isocalendar()[2]})
             collection.update({'name': self.username}, {'$set': {'checked-in': 'false', 'weeks': totarr}})
 
         else:
@@ -74,7 +73,8 @@ class User(UserMixin):
 
     def today(self):
         weeknum = datetime.date.today().isocalendar()[1]
-        day = datetime.date.today().weekday()
+        day = datetime.date.today().isocalendar()[2]
+
         collection = User._getcol()
         dt = collection.find({"name": self.username}, {'_id': 0}).limit(1)[0]
         # print f
@@ -402,7 +402,7 @@ def mongodb_uri():
     else:
         uri = "mongodb://localhost:27017"
 
-
+#
 # @app.before_first_request
 # def initialize():
 #     from pymongo import Connection
