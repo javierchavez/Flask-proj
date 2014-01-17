@@ -20,8 +20,6 @@ class User(UserMixin):
         self.todayarr = []
         # day needs to be consistent with java/JS
 
-
-
     def get_id(self):
         return unicode(str(self.username))
 
@@ -83,14 +81,6 @@ class User(UserMixin):
                 arr.append(x)
         return arr
 
-    def add_file(self, fname):
-        collection = User._getcol()
-        finding = collection.find({'name': self.username}).limit(1)[0]
-        filesarr = finding["files"]
-        # print filesarr
-        # filesarr = [fname]
-        filesarr.append(fname)
-        collection.update({'name': self.username}, {'$set': {'files': filesarr}})
 
     def get_week(self, week):
 
@@ -104,19 +94,12 @@ class User(UserMixin):
         print arr
         return arr
 
-    # def update_times(self):
-    #     collection = User._getcol()
-    #     finding = collection.find_one({'name': self.username})
-    #     weeknum = datetime.date.today().isocalendar()[1]
-
     @staticmethod
     def _getcol():
         uri = mongodb_uri()
         conn = Connection(uri)
         collection = conn.db.user_data
         return collection
-
-
 
     @staticmethod
     def get(username):
