@@ -8,8 +8,7 @@ from flask.ext.login import LoginManager, current_user, login_required, login_us
 from flask.ext.httpauth import HTTPBasicAuth
 import sys
 from dateutil import parser
-from gridfs import GridFS
-from gridfs.errors import NoFile
+
 
 
 class User(UserMixin):
@@ -117,12 +116,7 @@ class User(UserMixin):
         collection = conn.db.user_data
         return collection
 
-    @staticmethod
-    def get_grid():
-        uri = mongodb_uri()
-        conn = Connection(uri)
-        db = conn.db
-        return GridFS(db)
+
 
     @staticmethod
     def get(username):
@@ -216,50 +210,6 @@ def main():
     return render_template("main.html", data=s, fdata=c)
 
 
-@app.route("/upload", methods=["POST", "GET"])
-@login_required
-def upload_file():
-
-    if request.method == 'POST':
-        # TODO check file
-        file = request.files['file']
-        userFN = request.form['filename']
-        filename = file.filename
-        fs = User.get_grid()
-        oid = fs.put(file, content_type=file.content_type, filename=filename)
-        current_user.add_file(str(oid))
-        return redirect(url_for('main', oid=str(oid)))
-
-    elif request.method == "GET":
-        return render_template("uploadts.html")
-
-@app.route("/download", methods=["GET"])
-@login_required
-def download_file():
-    fs = User.get_grid()
-
-    files = [fs.get_last_version(file) for file in fs.list()]
-    file_list = ['http://timetracker.aws.af.cm%s' % (url_for('serve_gridfs_file_by_name', filename=str(file.name))) for file in files]
-    file_list = "\n".join(['<li><a href="%s">%s</a></li>' % \
-                           (url_for('serve_gridfs_file_by_name', filename=str(file.name)), file.name) \
-                           for file in files])
-    print file_list
-
-    return file_list
-
-# get file by filename
-
-
-@app.route('/<filename>')
-def serve_gridfs_file_by_name(filename):
-    fs = User.get_grid()
-    try:
-        file_ = fs.get_last_version(filename)
-        response = make_response(file_.read())
-        response.mimetype = file_.content_type
-        return response
-    except NoFile:
-        abort(404)
 
 
 @app.route("/login", methods=["POST"])
@@ -371,18 +321,25 @@ def api_get_specific(wk):
 @app.route("/sign-up", methods=["GET", "POST"])
 def signup():
     if request.method == "POST" and "username" in request.form:
-        username = request.form["username"]
-        password = request.form["password"]
+        code = request.form["code"]
 
-        user = User.get(username)
-        if user is None:
-            user = User(username, password, [])
-            user.save_user_only()
-            login_user(user)
-            return redirect(url_for("main"))
+        if code == "imin":
+
+            username = request.form["username"]
+            password = request.form["password"]
+
+            user = User.get(username)
+            if user is None:
+                user = User(username, password, [])
+                user.save_user_only()
+                login_user(user)
+                return redirect(url_for("main"))
+            else:
+                flash("Username taken")
+                return redirect(url_for("signup"))
         else:
-            flash("Username taken")
-            return redirect(url_for("signup"))
+            flash("Sorry, code is invalid")
+            return render_template("signup.html")
 
     elif request.method == "GET":
         return render_template("signup.html")

@@ -2,6 +2,19 @@
 
 {% block title %}{{ current_user.username }}{% endblock %}
 
+{% block imports %}
+    <script type="application/javascript" src="/static/js/libs/jspdf.js"></script>
+    <script type="application/javascript" src="/static/js/libs/Downloadify/js/downloadify.min.js"></script>
+    <script type="application/javascript" src="/static/js/libs/Downloadify/js/swfobject.js"></script>
+    <script type="application/javascript" src="/static/js/libs/Blob.js/BlobBuilder.js"></script>
+    <script type="application/javascript" src="/static/js/libs/Deflate/adler32cs.js"></script>
+    <script type="application/javascript" src="/static/js/libs/jspdf.plugin.addimage.js"></script>
+    <script type="application/javascript" src="/static/js/libs/jspdf.plugin.standard_fonts_metrics.js"></script>
+    <script type="application/javascript" src="/static/js/libs/jspdf.plugin.split_text_to_size.js"></script>
+    <script type="application/javascript" src="/static/js/libs/FileSaver.js/FileSaver.js"></script>
+    <script type="application/javascript" src="/static/js/basefile.js"></script>
+{% endblock %}
+
 {% block content %}
     <div class="row">
         <div class="col-md-6 col-md-offset-6">
@@ -46,12 +59,12 @@
                     <h3 class="panel-title">File</h3>
                 </div>
                 <div class="panel-body text-center">
-                    <form action="{{ url_for('download_file') }}" method=get>
+{#                    <form action="{{ url_for('download_file') }}" method=get>#}
 
-                        <button type="submit" class="btn btn-success">Download time sheet</button>
+{#                        <button type="submit" class="btn btn-success">Download time sheet</button>#}
 
-                        <button onclick="parent.location='{{ url_for('upload_file') }}'" type="button" class="btn btn-default">Upload new time sheet</button>
-                    </form>
+{#                        <button onclick="parent.location='{{ url_for('upload_file') }}'" type="button" class="btn btn-default">Upload new time sheet</button>#}
+{#                    </form>#}
                     <div class="span5" id="sandbox-container"><input type="text"></div>
                 </div>
             </div>
