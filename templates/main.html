@@ -13,6 +13,15 @@
     <script type="application/javascript" src="/static/js/libs/jspdf.plugin.split_text_to_size.js"></script>
     <script type="application/javascript" src="/static/js/libs/FileSaver.js/FileSaver.js"></script>
     <script type="application/javascript" src="/static/js/basefile.js"></script>
+
+    <link rel="stylesheet" type="text/css" media="screen"
+          href="http://tarruda.github.com/bootstrap-datetimepicker/assets/css/bootstrap-datetimepicker.min.css">
+    <script type="text/javascript"
+            src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.min.js">
+    </script>
+    <script type="text/javascript"
+            src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.pt-BR.js">
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -59,6 +68,28 @@
                     <h3 class="panel-title">File</h3>
                 </div>
                 <div class="panel-body text-center">
+                    <div class="well">
+                        <div id="datetimepicker4" class="input-append">
+                            <input data-format="yyyy-MM-dd" type="text"></input>
+    <span class="add-on">
+      <i data-time-icon="icon-time" data-date-icon="icon-calendar">
+      </i>
+    </span>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        $(function() {
+                            $('#datetimepicker4').datetimepicker({
+                                pickTime: false
+                            });
+                        });
+
+                        el.on('changeDate', function(e) {
+                            console.log(e.date.toString());
+                            console.log(e.localDate.toString());
+                        });
+                    </script>
+
 {#                    <form action="{{ url_for('download_file') }}" method=get>#}
 
 {#                        <button type="submit" class="btn btn-success">Download time sheet</button>#}
@@ -90,6 +121,7 @@
     <iframe id="ifmd" frameborder="0" width="1200" height="400"></iframe>
     </div>
     <script>
+
         $(document).ready(function() {
             $(window).resize(function() {
                 $('#ifmd').width($(window).width() * 0.9);
